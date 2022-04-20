@@ -64,15 +64,16 @@ namespace PuppeteerSharp_test
                 FileInfo Filetest = new FileInfo(ChromiumDir);
                 if (!Filetest.Exists)
                 {
-                    ShowError("ChromiumDir Error.");
+                    ShowError("Chromium.exe Not Exist.");
                     ScreenShotAll.Enabled = false;
                 }
             }
             catch (Exception) { }
         }
 
-        private void ScreenShotAll_Click(object sender, EventArgs e)
+        private async void ScreenShotAll_Click(object sender, EventArgs e)
         {
+            Browser browser = null;
             try
             {
                 ShowError("");
@@ -82,28 +83,13 @@ namespace PuppeteerSharp_test
                 }
 
                 ScreenShotAll.Enabled = false;
-                var filename = PageToImage(InputUrl.Text, IsHeadLess, ChromiumDir);
-                string pngdir = ImageDirectory + filename.Result;
-                ScreenShotPng.Load(pngdir);
 
-                ScreenShotAll.Enabled = true;
-            }
-            catch(Exception ex)
-            {
-                ShowError(ex.Message);
-            }
-        }
+                string url = InputUrl.Text;
 
-        public async Task<string> PageToImage(string url,bool isheadless,string chronmiumdir)
-        {
-            Browser browser = null;
-            try
-            {
                 browser = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
-                    Headless = isheadless,
-                    ExecutablePath = chronmiumdir,
-                    //Timeout = 5000,
+                    Headless = IsHeadLess,
+                    ExecutablePath = ChromiumDir,
                     Args = new string[] { /*"--no-sandbox",*/ "--start-maximized", "--window-size=1920,1080" }
                 });
                 var page = await browser.NewPageAsync();
@@ -112,51 +98,19 @@ namespace PuppeteerSharp_test
                     Width = 1920,
                     Height = 1600
                 });
-                var Response = await page.GoToAsync(url, new NavigationOptions { WaitUntil = new WaitUntilNavigation[] { WaitUntilNavigation.DOMContentLoaded }, Timeout = 0 });
-                
-                #region if need login
-                //if (page.Url.Contains("login"))
-                //{
-                //    await page.TypeAsync("#username", "admin");
-                //    await page.TypeAsync("#password", "123456");
-                //    await page.ClickAsync(".btn-block");
-                //    await page.WaitForTimeoutAsync(1000);
-                //    await page.ReloadAsync(new NavigationOptions { WaitUntil = new WaitUntilNavigation[] { WaitUntilNavigation.Networkidle0 }, Timeout = 0 });
-                //}
-                //await page.WaitForTimeoutAsync(2000);
-                #endregion
-
+                await page.GoToAsync(url);
+                ScreenshotOptions screenshotOptions = new ScreenshotOptions();
                 string fileName = $"{Guid.NewGuid()}.png";
-                await page.ScreenshotAsync($"{ImageDirectory}{fileName}", new ScreenshotOptions { FullPage = false });
-                await page.CloseAsync();
-                await browser.CloseAsync();
-
+                await page.ScreenshotAsync($"{ImageDirectory}{fileName}", screenshotOptions);
                 string pngdir = ImageDirectory + fileName;
-                if (File.Exists(pngdir))
-                {
-                    PngDirs.Enqueue(pngdir);
-                }
-                if (PngDirs.Count > 50)//keep fifty screenshots
-                {
-                    lock (PngDirs)
-                    {
-                        string delpngdir = PngDirs.Dequeue();
-                        if (File.Exists(delpngdir))
-                        {
-                            File.Delete(delpngdir);
-                        }
-                    }
-                }
 
-                return fileName;
+                ScreenShotPng.Load(pngdir);
+
+                ScreenShotAll.Enabled = true;
             }
-            catch (NavigationException ex)
+            catch(Exception ex)
             {
-                throw new Exception("fails to navigate ," + ex.Url + "[" + ex.Message + "]");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Exception from url( " + url + ") : " + ex.Message);
+                ShowError(ex.Message);
             }
             finally
             {

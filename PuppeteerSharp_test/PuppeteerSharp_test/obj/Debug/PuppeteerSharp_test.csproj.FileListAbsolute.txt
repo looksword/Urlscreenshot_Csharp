@@ -9,3 +9,4 @@ D:\Test\PuppeteerSharp_test\PuppeteerSharp_test\obj\Debug\PuppeteerSharp_test.cs
 D:\Test\PuppeteerSharp_test\PuppeteerSharp_test\obj\Debug\PuppeteerSharp_test.exe
 D:\Test\PuppeteerSharp_test\PuppeteerSharp_test\obj\Debug\PuppeteerSharp_test.pdb
 D:\Test\PuppeteerSharp_test\Debug\App.config
+D:\Test\PuppeteerSharp_test\PuppeteerSharp_test\obj\Debug\PuppeteerSharp_test.csproj.AssemblyReference.cache
